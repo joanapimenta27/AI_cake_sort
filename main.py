@@ -1,6 +1,9 @@
 import pygame
 
 from input_handler import *
+from menu import Menu
+from settings import SettingsMenu
+from scoreboard import Scoreboard
 from board import Board
 from plate import Plate
 from slice import Slice
@@ -18,6 +21,35 @@ def main():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Cake Sort")
 
+    menu=Menu(screen)
+    in_menu= True
+
+    while in_menu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            action = menu.handle_event(event)
+
+            if action == "start":
+                in_menu = False
+            elif action == "settings":
+                settings_menu = SettingsMenu(screen)
+                running_settings = True
+                while running_settings:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        action = settings_menu.handle_event(event)
+                        if action == "back":
+                            running_settings = False
+
+                    settings_menu.draw()
+                    pygame.display.flip()
+        menu.draw()
+        pygame.display.flip()
 
     #========================= PREPARE CELL SIZE ==========================#
     rows, cols = 4, 4  # Numero de linhas e colunas do tabuleiro
@@ -74,6 +106,10 @@ def main():
     plate_renderer = PlateRenderer(board, table, board_side_margin, board_top_margin, plate_img, circle_highlight_img, cell_size, slice_renderer)
     #___________________________ RENDER BOARD _____________________________#
 
+    #=========================== PREPARE SCOREBOARD =============================#
+    scoreboard = Scoreboard(screen)
+    #___________________________ PREPARE SCOREBOARD _____________________________#
+
     selected_plate = None
     plate_is_selected = False
 
@@ -100,6 +136,8 @@ def main():
         table_renderer.draw(screen)
         plate_renderer.draw(screen, selected_plate)
 
+        scoreboard.draw()
+        
         pygame.display.flip()
     #____________________________ MAIN LOOP ______________________________#
     
