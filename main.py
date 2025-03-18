@@ -138,8 +138,7 @@ def main():
         table_renderer.draw(screen)
         plate_renderer.draw(screen, selected_plate)
 
-        board.clean_board()
-
+        board.clean_board(scoreboard)
 
         scoreboard.draw()
         

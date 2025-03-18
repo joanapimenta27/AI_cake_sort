@@ -44,17 +44,23 @@ class Board:
                     adjacent.append(item)
         return adjacent
     
-    def clean_board(self):
+    def clean_board(self,score):
         positions_to_remove = []
         for row in range(self.rows):
             for col in range(self.cols):
                 item = self.get_item(row, col)
                 if item is not None:
                     if isinstance(item, Plate) and (item.is_empty() or item.is_fully_uniform()):
-                        positions_to_remove.append((row, col))
-        
-        for pos in positions_to_remove:
+                        positions_to_remove.append((row, col,item))
+
+        for row,col, plate in positions_to_remove:
+            if  plate.is_empty():
+                score.update_score(10)  # Award 10 points for an empty plate.
+            elif plate.is_fully_uniform():
+                score.update_score(20)  # Award 20 points for a complete cake.           
             pygame.display.flip()
             pygame.time.delay(600//len(positions_to_remove))
-            self.remove_item(*pos)
+            self.remove_item(*(row,col))
             pygame.display.flip()
+
+        
