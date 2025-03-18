@@ -71,9 +71,11 @@ def main():
     #=========================== PREPARE CAKES ============================#
     chocolate_img = pygame.image.load("assets/chocolate_cake.png")
     chocolate_img = pygame.transform.scale(chocolate_img, (cell_size, cell_size))
+    pistaccio_img = pygame.image.load("assets/pistaccio_cake.png")
+    pistaccio_img = pygame.transform.scale(pistaccio_img, (cell_size, cell_size))
     strawberry_img = pygame.image.load("assets/strawberry_cake.png")
     strawberry_img = pygame.transform.scale(strawberry_img, (cell_size, cell_size))
-    cake_data = [chocolate_img, strawberry_img]
+    cake_data = [chocolate_img, strawberry_img, pistaccio_img]
     slice_count = 6
     Plate.cake_data = cake_data
     Plate.max_slices = slice_count
@@ -135,6 +137,9 @@ def main():
         board_renderer.draw(screen, selected_plate)
         table_renderer.draw(screen)
         plate_renderer.draw(screen, selected_plate)
+
+        board.clean_board()
+
 
         scoreboard.draw()
         
