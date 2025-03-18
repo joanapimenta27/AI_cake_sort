@@ -9,7 +9,7 @@ class Plate:
     def __init__(self):
         self.slices = [None] * self.max_slices
     
-    def add_slices(self, cake_slice):
+    def add_slice(self, cake_slice):
         for i in range(self.max_slices):
             if self.slices[i] is None:
                 self.slices[i] = cake_slice
@@ -34,6 +34,22 @@ class Plate:
     def get_number_of_distinct_flavors(self):
         return len(set(slice_.cake_index() for slice_ in self.slices if slice_ is not None))
     
+    def get_dominant_flavor(self):
+        counts = {}
+        for slice_ in self.slices:
+            if slice_ is not None:
+                flavor = slice_.cake_index()
+                counts[flavor] = counts.get(flavor, 0) + 1
+        if counts:
+            return max(counts, key=counts.get), max(counts.values())
+        return None
+    
+    def get_flavor_count(self, flavor):
+        return sum(1 for slice_ in self.slices if slice_ is not None and slice_.cake_index() == flavor)
+    
+    def is_fully_uniform(self):
+        return self.get_number_of_distinct_flavors() == 1 and self.is_full()
+    
     def is_full(self):
         return all(slice_ is not None for slice_ in self.slices)
 
@@ -52,4 +68,4 @@ class Plate:
         for i in range(number_of_slices):
             flavor = random.randint(0, number_of_flavors-1)
             slice = Slice(flavor)
-            self.add_slices(slice)
+            self.add_slice(slice)
