@@ -4,6 +4,7 @@ from slice import Slice
 
 
 class Table:
+
     DEFAULT_MAX_PLATES = 3
 
     def __init__(self, padding, side_img_width, max_plates=DEFAULT_MAX_PLATES):
@@ -27,12 +28,16 @@ class Table:
         ValueError(f"Invalid plate index: {index}")
         return None
     
-    def generate_random_plates(self):
-        for i in range(self.max_plates):
-            plate = Plate()
-            plate.generate_random_plate()
+    def get_plates(self, plates_on_table, cakes):
+        plates = cakes[:plates_on_table]
+        del cakes[:plates_on_table]
+        for plate in plates:
             self.add_plate(plate)
+        return plates
     
     def has_no_plates(self):
         return all(plate is None for plate in self.plates)
+
+    def reset(self):
+        self.plates = [None] * self.max_plates
         

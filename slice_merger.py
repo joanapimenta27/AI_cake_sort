@@ -2,9 +2,12 @@ def merge_slices_between_plates(adjacent_plates, placed_plate):
     
     count = 0
     changes_made = True
+
     while changes_made:
+        #print("================================================================")
         changes_made = False
 
+        previous_lower_diversity_best = None 
         while True:  # Handle lower diversity neighbors
             placed_plate_diversity = placed_plate.get_number_of_distinct_flavors()
             lower_diversity_neighbors = []
@@ -13,32 +16,47 @@ def merge_slices_between_plates(adjacent_plates, placed_plate):
                 neighbor_diversity = neighbor.get_number_of_distinct_flavors()
                 if neighbor_diversity < placed_plate_diversity:
                     lower_diversity_neighbors.append(neighbor)
-            
+            #print(f"Lower diversity neighbors: {lower_diversity_neighbors}")
             best_neighbor = select_best_lower_diversity_neighbor(lower_diversity_neighbors, placed_plate)
-
+            #print(f"Best lower diversity neighbor: {best_neighbor.composition() if best_neighbor else None}")
             if best_neighbor is None:
-                print("No best neighbor found.")
+                #print("No best neighbor found in lower diversity.")
                 break
+            elif best_neighbor == previous_lower_diversity_best:
+                count += 1
+                #print(f"Count: {count}")
+                if count > 3:
+                    count = 0
+                    #print("Best lower-diversity neighbor is the same as last iteration; skipping further trades.")
+                    break
             else:
-                target_flavor, _ = best_neighbor.get_dominant_flavor()                
+                previous_lower_diversity_best = best_neighbor
+                target_flavor, _ = best_neighbor.get_dominant_flavor()
+                pre_count = best_neighbor.number_of_slices()                
                 deal_with_best_neighbor(best_neighbor, placed_plate, adjacent_plates)
+                post_count = best_neighbor.number_of_slices()
+                if post_count != pre_count:
+                    #print("changes made")
+                    changes_made = True
                 
 
         previous_same_diversity_best = None           
         while True: # Handle same diversity neighbors
+            #print("Entering same diversity neighbors loop")
             same_diversity_neighbors = get_same_diversity_neighbors(adjacent_plates, placed_plate)
             shared_flavor_neighbors = get_neighbors_with_shared_flavors(same_diversity_neighbors, placed_plate)
             best_same_diversity_neighbor = select_best_same_diversity_neighbor(shared_flavor_neighbors, placed_plate)
+            #print(f"Best same diversity neighbor: {best_same_diversity_neighbor.composition() if best_same_diversity_neighbor else None}")
 
             if best_same_diversity_neighbor is None:
-                    print("No best neighbor found in same diversity.")
+                    #print("No best neighbor found in same diversity.")
                     break
             elif best_same_diversity_neighbor == previous_same_diversity_best:
                 count += 1
-                print(f"Count: {count}")
+                #print(f"Count: {count}")
                 if count > 3:
                     count = 0
-                    print("Best same-diversity neighbor is the same as last iteration; skipping further trades.")
+                    #print("Best same-diversity neighbor is the same as last iteration; skipping further trades.")
                     break
             else:
                 previous_same_diversity_best = best_same_diversity_neighbor
@@ -57,13 +75,13 @@ def merge_slices_between_plates(adjacent_plates, placed_plate):
             higher_diversity_neighbors = get_higher_diversity_neighbors(adjacent_plates, placed_plate)
             best_higher_diversity_neighbor = select_best_higher_diversity_neighbor(higher_diversity_neighbors, placed_plate)
             if best_higher_diversity_neighbor is None:
-                print("No best neighbor found in higher diversity.")
+                #print("No best neighbor found in higher diversity.")
                 break
             elif best_higher_diversity_neighbor == previous_higher_diversity_best:
                 count += 1
                 if count > 3:
                     count = 0
-                    print("Best same-diversity neighbor is the same as last iteration; skipping further trades.")
+                    #print("Best same-diversity neighbor is the same as last iteration; skipping further trades.")
                     break
             else:
                 previous_higher_diversity_best = best_higher_diversity_neighbor
@@ -71,17 +89,17 @@ def merge_slices_between_plates(adjacent_plates, placed_plate):
                 deal_with_best_higher_diversity_neighbor(best_higher_diversity_neighbor, placed_plate)
                 post_count = best_higher_diversity_neighbor.number_of_slices()
                 if post_count != pre_count:
-                    print("changes made")
+                    #print("changes made")
                     changes_made = True
 
 
 
 def deal_with_best_higher_diversity_neighbor(best_neighbor, placed_plate):
-    print(f"Dealing with best higher diversity neighbor: {best_neighbor}")
+    #print(f"Dealing with best higher diversity neighbor: {best_neighbor}")
     placed_flavors = {s.cake_index() for s in placed_plate.slices if s is not None}
     neighbor_flavors = {s.cake_index() for s in best_neighbor.slices if s is not None}
     shared_flavors = placed_flavors.intersection(neighbor_flavors)
-    print(f"Shared flavors: {shared_flavors}")
+    #print(f"Shared flavors: {shared_flavors}")
     
     best_flavor = None
     max_diff = -float('inf')
@@ -93,16 +111,16 @@ def deal_with_best_higher_diversity_neighbor(best_neighbor, placed_plate):
         if diff >= max_diff:
             max_diff = diff
             best_flavor = flavor
-            print(f"Best flavor: {best_flavor}")
+            #print(f"Best flavor: {best_flavor}")
             
     if best_flavor is not None:
         needed = placed_plate.max_slices - placed_plate.number_of_slices()
         max_give = best_neighbor.get_flavor_count(best_flavor)
         quantity_to_transfer = min(max_give, needed)
-        print(f"Needed: {needed}, Quantity to transfer: {quantity_to_transfer}")
+        #print(f"Needed: {needed}, Quantity to transfer: {quantity_to_transfer}")
         if quantity_to_transfer > 0:
             transferred = transfer_slices(best_neighbor, placed_plate, best_flavor, quantity_to_transfer)
-            print(f"Transferred {transferred} slices of flavor {best_flavor} from placed_plate to best_neighbor.")
+            #print(f"Transferred {transferred} slices of flavor {best_flavor} from placed_plate to best_neighbor.")
 
 
 def get_higher_diversity_neighbors(adjacent_plates, placed_plate):
@@ -138,7 +156,7 @@ def select_best_higher_diversity_neighbor(higher_diversity_neighbors, placed_pla
 
 def deal_with_best_same_diversity_neighbor(best_neighbor, placed_plate, adjacent_plates):
     target_flavor, _ = best_neighbor.get_dominant_flavor()
-    needed = best_neighbor.max_slices - best_neighbor.get_flavor_count(target_flavor)
+    needed = min(best_neighbor.max_slices - best_neighbor.get_flavor_count(target_flavor), best_neighbor.max_slices - best_neighbor.number_of_slices())
     available_in_placed = placed_plate.get_flavor_count(target_flavor)
 
     if available_in_placed < needed:
@@ -242,8 +260,10 @@ def select_best_lower_diversity_neighbor(neighbors, placed_plate):
     return best
 
 def deal_with_best_neighbor(best_neighbor, placed_plate, adjacent_plates):
+    #print("Placed plate content: ", placed_plate.composition())
     target_flavor, _= best_neighbor.get_dominant_flavor()
-    needed = best_neighbor.max_slices - best_neighbor.get_flavor_count(target_flavor)
+    needed = min(best_neighbor.max_slices - best_neighbor.get_flavor_count(target_flavor), best_neighbor.max_slices - best_neighbor.number_of_slices())
+    #print(f"Needed: {needed}")
     available_in_placed = placed_plate.get_flavor_count(target_flavor)
     if available_in_placed < needed:
         other_neighbors = [n for n in adjacent_plates if n != best_neighbor]
@@ -255,16 +275,21 @@ def deal_with_best_neighbor(best_neighbor, placed_plate, adjacent_plates):
                 quantity_needed = needed - placed_plate.get_flavor_count(target_flavor)
                 if quantity_needed <= 0:
                     break
+                #print(f"Transferring {quantity_needed} slices of flavor {target_flavor} from neighbor {neighbor}.")
                 transferred = transfer_slices(neighbor, placed_plate, target_flavor, quantity_needed)
-                print(f"Gathered {transferred} slices of flavor {target_flavor} from neighbor {neighbor} to placed_plate.")
+                #print(f"Gathered {transferred} slices of flavor {target_flavor} from neighbor {neighbor} to placed_plate.")
                 available_in_placed = placed_plate.get_flavor_count(target_flavor)
                 if available_in_placed >= needed:
                     break
     available_in_placed = placed_plate.get_flavor_count(target_flavor)
     quantity_to_transfer = min(needed, available_in_placed)
     if quantity_to_transfer > 0:
+        #print(f"Placed plate flavor count: {placed_plate.get_flavor_count(target_flavor)}")
         transferred = transfer_slices(placed_plate, best_neighbor, target_flavor, quantity_to_transfer)
-        print(f"Transferred {transferred} slices of flavor {target_flavor} from placed_plate to best_neighbor.")
+        #print(f"Transferred {transferred} slices of flavor {target_flavor} from placed_plate to best_neighbor.")
+        #print(f"Placed plate flavor count: {placed_plate.get_flavor_count(target_flavor)}")
+
+
 
 def transfer_slices(source_plate, target_plate, flavor, quantity):
     moved = 0
@@ -277,8 +302,11 @@ def transfer_slices(source_plate, target_plate, flavor, quantity):
                     source_plate.remove_slice(i)
                     moved += 1
             else:
+                #print("Target plate is full, cannot transfer more slices.", target_plate.composition())
                 break
     if moved > 0:
         compute_flavor_counts(source_plate)
         compute_flavor_counts(target_plate)
+        #print("source plate flavour counts: ", source_plate.composition())
+        #print("target plate flavor counts: ", target_plate.composition())
     return moved

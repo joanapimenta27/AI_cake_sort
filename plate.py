@@ -62,10 +62,10 @@ class Plate:
     def number_of_flavors_available(self):
         return len(self.cake_data)
     
-    def generate_random_plate(self):
-        number_of_slices = random.randint(1, self.max_slices-1)
-        number_of_flavors = self.number_of_flavors_available()
-        for i in range(number_of_slices):
-            flavor = random.randint(0, number_of_flavors-1)
-            slice = Slice(flavor)
-            self.add_slice(slice)
+    def composition(self):
+        counts = {}
+        for s in self.slices:
+            if s is not None:
+                flavor = s.cake_index()
+                counts[flavor] = counts.get(flavor, 0) + 1
+        return list(counts.items())
