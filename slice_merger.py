@@ -156,6 +156,7 @@ def select_best_higher_diversity_neighbor(higher_diversity_neighbors, placed_pla
 
 def deal_with_best_same_diversity_neighbor(best_neighbor, placed_plate, adjacent_plates):
     target_flavor, _ = best_neighbor.get_dominant_flavor()
+    #print("target flavor : ", target_flavor)
     needed = min(best_neighbor.max_slices - best_neighbor.get_flavor_count(target_flavor), best_neighbor.max_slices - best_neighbor.number_of_slices())
     available_in_placed = placed_plate.get_flavor_count(target_flavor)
 
@@ -175,8 +176,10 @@ def deal_with_best_same_diversity_neighbor(best_neighbor, placed_plate, adjacent
     
     available_in_placed = placed_plate.get_flavor_count(target_flavor)
     quantity_to_transfer = min(needed, available_in_placed)
-    if quantity_to_transfer > 0:
+    if quantity_to_transfer > 0 and placed_plate.get_number_of_distinct_flavors() == 1:
         transfer_slices(best_neighbor, placed_plate, target_flavor, quantity_to_transfer)
+    elif quantity_to_transfer > 0:
+        transfer_slices(placed_plate, best_neighbor, target_flavor, quantity_to_transfer)
     
     compute_flavor_counts(best_neighbor)
     compute_flavor_counts(placed_plate)
