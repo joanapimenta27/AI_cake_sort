@@ -71,7 +71,7 @@ class Menu:
             case "BFSMenu":
                 self.draw_button(self.start_1_button, "Start Machine Mode")
                 self.draw_button(self.start_2_button, "Start Spectator Mode")
-                self.draw_changable_buttons(self.depth_button, self.bfs_depth, 1, 10, 1)
+                self.draw_changable_buttons(self.depth_button, self.bfs_depth)
                 self.draw_button(self.back_button, "Back")
                 info_rect = self.info.get_rect(center=(self.width // 2 - 180, self.height // 2 + 110))
                 self.screen.blit(self.info, info_rect)
@@ -134,46 +134,52 @@ class Menu:
         return None
 
 
-    def draw_changable_buttons(self, rect, value, min_value, max_value, step):
+    def draw_changable_buttons(self, rect, value):
+        default_bg = (235, 182, 203)
+        hover_bg = (200, 150, 170)
+        
+        third_width = rect.width // 3
+        left_rect = pygame.Rect(rect.left, rect.top, third_width, rect.height)
+        center_rect = pygame.Rect(rect.left + third_width, rect.top, third_width, rect.height)
+        right_rect = pygame.Rect(rect.right - third_width, rect.top, third_width, rect.height)
+    
+        pygame.draw.rect(self.screen, default_bg, rect, border_radius=10)
+        
         mouse_pos = pygame.mouse.get_pos()
-        if rect.collidepoint(mouse_pos):
-            background = (200, 150, 170)
-        else:
-            background = (235, 182, 203)
-        pygame.draw.rect(self.screen, background, rect, border_radius=10)
+        
+        if left_rect.collidepoint(mouse_pos):
+            pygame.draw.rect(self.screen, hover_bg, left_rect, border_radius=10)
+        
+        if right_rect.collidepoint(mouse_pos):
+            pygame.draw.rect(self.screen, hover_bg, right_rect, border_radius=10)
+        
         pygame.draw.rect(self.screen, (255, 255, 255), rect, 3, border_radius=10)
         
         left_text = self.button_font.render("<", True, (255, 255, 255))
         right_text = self.button_font.render(">", True, (255, 255, 255))
         value_text = self.button_font.render(str(value), True, (255, 255, 255))
         
-        third_width = rect.width // 3
-        
-        left_rect = pygame.Rect(rect.left, rect.top, third_width, rect.height)
-        right_rect = pygame.Rect(rect.right - third_width, rect.top, third_width, rect.height)
-        
         left_text_rect = left_text.get_rect(center=left_rect.center)
         right_text_rect = right_text.get_rect(center=right_rect.center)
         value_text_rect = value_text.get_rect(center=rect.center)
+        
         self.screen.blit(left_text, left_text_rect)
         self.screen.blit(value_text, value_text_rect)
         self.screen.blit(right_text, right_text_rect)
     
-    def handle_int_button_event(self, event, rect, value, min_value, max_value, step):
-        third_width = rect.width // 3
-        left_area = pygame.Rect(rect.left, rect.top, third_width, rect.height)
-        right_area = pygame.Rect(rect.right - third_width, rect.top, third_width, rect.height)
+    def handle_int_button_event(self, event):
         
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if left_area.collidepoint(event.pos):
-                new_value = max(min_value, value - step)
-                print(f"New value: {new_value}")
-                return new_value
-            elif right_area.collidepoint(event.pos):
-                new_value = min(max_value, value + step)
-                print(f"New value: {new_value}")
-                return new_value
-
-        return value
+            mouse_pos = pygame.mouse.get_pos()
+            if self.depth_button.collidepoint(mouse_pos):
+                match self.menu_type:
+                    case "BFSMenu":
+                        third_width = self.depth_button.width // 3
+                        left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
+                        right_area = pygame.Rect(self.depth_button.right - third_width, self.depth_button.top, third_width, self.depth_button.height)
+                        if left_area.collidepoint(mouse_pos):
+                            self.bfs_depth = max(1, self.bfs_depth - 1)
+                        elif right_area.collidepoint(mouse_pos):
+                            self.bfs_depth = min(10, self.bfs_depth + 1)
     
    
