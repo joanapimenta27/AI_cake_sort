@@ -13,8 +13,41 @@ from slice_renderer import SliceRenderer
 from board_renderer import BoardRenderer
 from table_renderer import TableRenderer
 
-def main():
 
+def draw_pause_button(screen, pause_rect, button_font):
+    mouse_pos = pygame.mouse.get_pos()
+    if pause_rect.collidepoint(mouse_pos):
+        bg_color = (200, 150, 170)
+    else:
+        bg_color = (235, 182, 203)
+    
+    pygame.draw.rect(screen, bg_color, pause_rect, border_radius=10)
+    pygame.draw.rect(screen, (255, 255, 255), pause_rect, 3, border_radius=10)
+    
+    bar_width = pause_rect.width // 5
+    bar_height = int(pause_rect.height * 0.6)
+    gap = bar_width // 2
+    
+    bar1 = pygame.Rect(
+        pause_rect.centerx - gap - bar_width,
+        pause_rect.centery - bar_height // 2,
+        bar_width,
+        bar_height
+    )
+    bar2 = pygame.Rect(
+        pause_rect.centerx + gap,
+        pause_rect.centery - bar_height // 2,
+        bar_width,
+        bar_height
+    )
+    pygame.draw.rect(screen, (255, 255, 255), bar1)
+    pygame.draw.rect(screen, (255, 255, 255), bar2)
+
+
+
+
+
+def main():
 
     pygame.init()
 
@@ -95,6 +128,7 @@ def main():
 
     #=========================== PREPARE SCOREBOARD =============================#
     scoreboard = Scoreboard(screen)
+    pause_button_rect = pygame.Rect(screen_width - 20 - 60, 20, 60, 60)
     #___________________________ PREPARE SCOREBOARD _____________________________#
 
     selected_plate = None
@@ -111,7 +145,6 @@ def main():
     menu = Menu(screen)
     ai_menu = Menu(screen, "AIMenu")
     bfs_menu = Menu(screen, "BFSMenu")
-    game_over_menu = Menu(screen, "GameOver", scoreboard.score)
     #__________________________ PREPARE MENU _____________________________#
 
     #============================= MAIN LOOP ==============================#
@@ -184,7 +217,9 @@ def main():
                         pygame.quit()
                     
                     elif event.type == pygame.MOUSEBUTTONDOWN:
-                        if not plate_is_selected:
+                        if pause_button_rect.collidepoint(event.pos):
+                            game_state = "Paused"
+                        elif not plate_is_selected:
                             pos = pygame.mouse.get_pos()
                             selected_plate = handle_plate_selection(pos, selected_plate, board, table, board_side_margin, board_top_margin, cell_size)
                 
@@ -203,11 +238,57 @@ def main():
                 board.clean_board(scoreboard)
 
                 scoreboard.draw()
+                draw_pause_button(screen, pause_button_rect, menu.button_font)
+                
+                pygame.display.flip()
+            
+
+            case "Paused":
+                continue_button_rect = pygame.Rect(screen_width // 2 - 150, screen_height // 2 - 40, 300, 60)
+                leave_button_rect = pygame.Rect(screen_width // 2 - 150, screen_height // 2 + 40, 300, 60)
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if continue_button_rect.collidepoint(event.pos):
+                            game_state = "Playing"
+                        elif leave_button_rect.collidepoint(event.pos):
+                            game_state = "Menu"
+                
+                overlay = pygame.Surface((screen_width, screen_height))
+                overlay.fill((0, 0, 0))
+                screen.blit(overlay, (0, 0))
+                
+                mouse_pos = pygame.mouse.get_pos()
+                
+                if continue_button_rect.collidepoint(mouse_pos):
+                    continue_bg = (200, 150, 170)
+                else:
+                    continue_bg = (235, 182, 203)
+                
+                if leave_button_rect.collidepoint(mouse_pos):
+                    leave_bg = (200, 150, 170)
+                else:
+                    leave_bg = (235, 182, 203)
+                
+                pygame.draw.rect(screen, continue_bg, continue_button_rect, border_radius=10)
+                pygame.draw.rect(screen, (255, 255, 255), continue_button_rect, 3, border_radius=10)
+                pygame.draw.rect(screen, leave_bg, leave_button_rect, border_radius=10)
+                pygame.draw.rect(screen, (255, 255, 255), leave_button_rect, 3, border_radius=10)
+                
+                continue_text = menu.button_font.render("Continue", True, (255, 255, 255))
+                leave_text = menu.button_font.render("Leave", True, (255, 255, 255))
+                continue_text_rect = continue_text.get_rect(center=continue_button_rect.center)
+                leave_text_rect = leave_text.get_rect(center=leave_button_rect.center)
+                screen.blit(continue_text, continue_text_rect)
+                screen.blit(leave_text, leave_text_rect)
                 
                 pygame.display.flip()
         
 
             case "GameOver":
+                game_over_menu = Menu(screen, "GameOver", scoreboard.score)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
@@ -230,3 +311,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

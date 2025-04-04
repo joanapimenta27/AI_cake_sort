@@ -31,7 +31,7 @@ class Menu:
                 self.back_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 110, 300, 60)
             case "BFSMenu":
                 self.title = self.font.render("BFS Menu", True, (235, 182, 203))
-                self.info = self.info_font.render("DEPTH", True, (235, 182, 203))
+                self.info = self.info_font.render("Depth", True, (235, 182, 203))
                 self.start_1_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
                 self.start_2_button = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
                 self.depth_button = pygame.Rect(self.width // 2 - 325, self.height // 2 + 30, 300, 60)
