@@ -55,12 +55,17 @@ class Board:
 
         for row,col, plate in positions_to_remove:
             if  plate.is_empty():
-                score.update_score(10)  # Award 10 points for an empty plate.
+                score.update_score(10)
             elif plate.is_fully_uniform():
-                score.update_score(20)  # Award 20 points for a complete cake.           
+                score.update_score(20)   
             pygame.display.flip()
             pygame.time.delay(600//len(positions_to_remove))
             self.remove_item(*(row,col))
             pygame.display.flip()
+    
+    def reset(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.grid[row][col] = None
 
         

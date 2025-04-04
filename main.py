@@ -1,12 +1,12 @@
 import pygame
 
 from input_handler import *
+from utils import generate_cakes
 from menu import Menu
 from settings import SettingsMenu
 from scoreboard import Scoreboard
 from board import Board
 from plate import Plate
-from slice import Slice
 from table import Table
 from plate_renderer import PlateRenderer
 from slice_renderer import SliceRenderer
@@ -14,42 +14,17 @@ from board_renderer import BoardRenderer
 from table_renderer import TableRenderer
 
 def main():
+
+
     pygame.init()
+
+    game_state = "Menu"
 
     screen_width = 900
     screen_height = 900
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Cake Sort")
 
-    menu=Menu(screen)
-    in_menu= True
-
-    while in_menu:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            action = menu.handle_event(event)
-
-            if action == "start":
-                in_menu = False
-            elif action == "settings":
-                settings_menu = SettingsMenu(screen)
-                running_settings = True
-                while running_settings:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            sys.exit()
-                        action = settings_menu.handle_event(event)
-                        if action == "back":
-                            running_settings = False
-
-                    settings_menu.draw()
-                    pygame.display.flip()
-        menu.draw()
-        pygame.display.flip()
 
     #========================= PREPARE CELL SIZE ==========================#
     rows, cols = 4, 4  # Numero de linhas e colunas do tabuleiro
@@ -75,10 +50,19 @@ def main():
     pistaccio_img = pygame.transform.scale(pistaccio_img, (cell_size, cell_size))
     strawberry_img = pygame.image.load("assets/strawberry_cake.png")
     strawberry_img = pygame.transform.scale(strawberry_img, (cell_size, cell_size))
-    cake_data = [chocolate_img, strawberry_img, pistaccio_img]
+    pie_img = pygame.image.load("assets/pie_cake.png")
+    pie_img = pygame.transform.scale(pie_img, (cell_size, cell_size))
+    cheese_img = pygame.image.load("assets/cheese_cake.png")
+    cheese_img = pygame.transform.scale(cheese_img, (cell_size, cell_size))
+    cake_data = [chocolate_img, strawberry_img, pistaccio_img, pie_img, cheese_img]
     slice_count = 6
     Plate.cake_data = cake_data
     Plate.max_slices = slice_count
+    #--> Gerar os bolos
+    seed = 69
+    number_of_cakes = 10
+    cakes = generate_cakes(cake_data, slice_count, number_of_cakes, seed)
+    print(cakes)
     #___________________________ PREPARE CAKES ____________________________#
 
 
@@ -93,9 +77,10 @@ def main():
     hover_tile_img = pygame.transform.scale(hover_tile_img, (cell_size, cell_size))
     board_renderer = BoardRenderer(board, board_side_margin, board_top_margin, tile_image, hover_tile_img, cell_size)
     #--> Render da Mesa
+    plates_on_table = 3
     table_side_img_width = 100
-    table = Table(table_padding, table_side_img_width, 3)
-    table.generate_random_plates()
+    table = Table(table_padding, table_side_img_width, plates_on_table)
+    table.get_plates(plates_on_table, cakes)
     table_side_img = pygame.image.load("assets/table_side.png")
     table_side_img = pygame.transform.scale(table_side_img, (table_side_img_width, cell_size + table_padding*2))
     table_img = pygame.image.load("assets/table.png")
@@ -115,34 +100,126 @@ def main():
     selected_plate = None
     plate_is_selected = False
 
+    def initialize_game():
+        nonlocal cakes, scoreboard, table, board
+        cakes = generate_cakes(cake_data, slice_count, number_of_cakes, seed)
+        scoreboard.reset_score()
+        table.reset()
+        board.reset()
+
     #============================= MAIN LOOP ==============================#
-    clock = pygame.time.Clock()
     running = True
     while running:
-        clock.tick(60)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        match game_state:
+
+            case "Menu":
+                menu = Menu(screen)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
+                    action = menu.handle_event(event)
+                    if action == "start":
+                        game_state = "Playing"
+                        initialize_game()
+                    elif action == "aiMenu":
+                        game_state = "AIMenu"
+                    elif action == "settings":
+                        settings_menu = SettingsMenu(screen)
+                        running_settings = True
+                        while running_settings:
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    pygame.quit()
+                                    #sys.exit()
+                                action = settings_menu.handle_event(event)
+                                if action == "back":
+                                    running_settings = False
+
+                            settings_menu.draw()
+                            pygame.display.flip()
+                menu.draw()
+                pygame.display.flip()
+
+
+            case "AIMenu":
+                menu = Menu(screen, "AIMenu")
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
+                    action = menu.handle_event(event)
+                    #adjust = menu.handle_int_button_event(event)
+                    if action == "BFS":
+                        game_state = "BFSMenu"
+                    elif action == "back":
+                        game_state = "Menu"
+                menu.draw()
+                pygame.display.flip()
             
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if not plate_is_selected:
-                    pos = pygame.mouse.get_pos()
-                    selected_plate = handle_plate_selection(pos, selected_plate, board, table, board_side_margin, board_top_margin, cell_size)
+            case "BFSMenu":
+                menu = Menu(screen, "BFSMenu")
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
+                    action = menu.handle_event(event)
+                    if action == "start":
+                        pass
+                    elif action == "back":
+                        game_state = "AIMenu"
+                menu.draw()
+                pygame.display.flip()
         
-        if table.has_no_plates():
-            table.generate_random_plates()
+
+            case "Playing":
+                clock = pygame.time.Clock()
+                clock.tick(60)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                    
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if not plate_is_selected:
+                            pos = pygame.mouse.get_pos()
+                            selected_plate = handle_plate_selection(pos, selected_plate, board, table, board_side_margin, board_top_margin, cell_size)
+                
+                if len(cakes) == 0:
+                    game_state = "GameOver"
+
+                if table.has_no_plates():
+                    table.get_plates(plates_on_table, cakes)
+                
+                screen.fill((200, 200, 250))
+
+                board_renderer.draw(screen, selected_plate)
+                table_renderer.draw(screen)
+                plate_renderer.draw(screen, selected_plate)
+
+                board.clean_board(scoreboard)
+
+                scoreboard.draw()
+                
+                pygame.display.flip()
         
-        screen.fill((200, 200, 250))
 
-        board_renderer.draw(screen, selected_plate)
-        table_renderer.draw(screen)
-        plate_renderer.draw(screen, selected_plate)
+            case "GameOver":
+                menu = Menu(screen, "GameOver", scoreboard.score)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
 
-        board.clean_board(scoreboard)
+                    action = menu.handle_event(event)
 
-        scoreboard.draw()
-        
-        pygame.display.flip()
+                    if action == "start":
+                        game_state = "Playing"
+                        initialize_game()
+                    
+                    elif action == "menu":
+                        game_state = "Menu"
+                menu.draw()
+                pygame.display.flip()
     #____________________________ MAIN LOOP ______________________________#
     
     pygame.quit()
