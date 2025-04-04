@@ -201,8 +201,10 @@ def main():
                         #+sys.exit()
                     action = bfs_menu.handle_event(event)
                     adjust = bfs_menu.handle_int_button_event(event)
-                    if action == "start":
-                        pass
+                    if action == "start_1":
+                        print(action)
+                    elif action == "start_2":
+                        print(action)
                     elif action == "back":
                         game_state = "AIMenu"
                 bfs_menu.draw()

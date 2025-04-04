@@ -57,7 +57,7 @@ class Menu:
         # Draw Buttons
         match self.menu_type:
             case "Start":
-                self.draw_button(self.start_button, "Start")
+                self.draw_button(self.start_button, "Play")
                 self.draw_button(self.ai_button, "AI")
                 self.draw_button(self.settings_button, "Settings")
                 self.draw_button(self.quit_button, "Quit")
