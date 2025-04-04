@@ -107,13 +107,19 @@ def main():
         table.reset()
         board.reset()
 
+    #============================ PREPARE MENU =============================#
+    menu = Menu(screen)
+    ai_menu = Menu(screen, "AIMenu")
+    bfs_menu = Menu(screen, "BFSMenu")
+    game_over_menu = Menu(screen, "GameOver", scoreboard.score)
+    #__________________________ PREPARE MENU _____________________________#
+
     #============================= MAIN LOOP ==============================#
     running = True
     while running:
         match game_state:
 
             case "Menu":
-                menu = Menu(screen)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
@@ -143,32 +149,30 @@ def main():
 
 
             case "AIMenu":
-                menu = Menu(screen, "AIMenu")
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         #+sys.exit()
-                    action = menu.handle_event(event)
-                    #adjust = menu.handle_int_button_event(event)
+                    action = ai_menu.handle_event(event)
                     if action == "BFS":
                         game_state = "BFSMenu"
                     elif action == "back":
                         game_state = "Menu"
-                menu.draw()
+                ai_menu.draw()
                 pygame.display.flip()
             
             case "BFSMenu":
-                menu = Menu(screen, "BFSMenu")
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         #+sys.exit()
-                    action = menu.handle_event(event)
+                    action = bfs_menu.handle_event(event)
+                    adjust = bfs_menu.handle_int_button_event(event)
                     if action == "start":
                         pass
                     elif action == "back":
                         game_state = "AIMenu"
-                menu.draw()
+                bfs_menu.draw()
                 pygame.display.flip()
         
 
@@ -204,13 +208,12 @@ def main():
         
 
             case "GameOver":
-                menu = Menu(screen, "GameOver", scoreboard.score)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         #+sys.exit()
 
-                    action = menu.handle_event(event)
+                    action = game_over_menu.handle_event(event)
 
                     if action == "start":
                         game_state = "Playing"
@@ -218,7 +221,7 @@ def main():
                     
                     elif action == "menu":
                         game_state = "Menu"
-                menu.draw()
+                game_over_menu.draw()
                 pygame.display.flip()
     #____________________________ MAIN LOOP ______________________________#
     
