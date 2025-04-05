@@ -11,7 +11,7 @@ class Menu:
         self.font = pygame.font.SysFont("comicsans", 100)
         self.info_font = pygame.font.SysFont("comicsans", 50)
         self.button_font = pygame.font.SysFont("comicsans", 30)
-        self.depth = 3
+        self.depth = 2
  
 
 
@@ -32,7 +32,7 @@ class Menu:
                 self.back_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 110, 300, 60)
             case "BFSMenu":
                 self.title = self.font.render("BFS Menu", True, (235, 182, 203))
-                self.info = self.info_font.render("DEPTH", True, (235, 182, 203))
+                self.info = self.info_font.render("Depth", True, (235, 182, 203))
                 self.start_1_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
                 self.start_2_button = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
                 self.depth_button = pygame.Rect(self.width // 2 - 325, self.height // 2 + 30, 300, 60)
@@ -47,7 +47,6 @@ class Menu:
             case "GameOver":
                 self.title = self.font.render("Game Over", True, (235, 182, 203))
                 self.score = self.font.render(f"Score: {score}", True, (235, 182, 203))
-                self.restart_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 30, 300, 60)
                 self.mainmenu_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 110, 300, 60)
 
 
@@ -65,7 +64,7 @@ class Menu:
         # Draw Buttons
         match self.menu_type:
             case "Start":
-                self.draw_button(self.start_button, "Start")
+                self.draw_button(self.start_button, "Play")
                 self.draw_button(self.ai_button, "AI")
                 self.draw_button(self.settings_button, "Settings")
                 self.draw_button(self.quit_button, "Quit")
@@ -93,7 +92,6 @@ class Menu:
             case "GameOver":
                 score_rect = self.score.get_rect(center=(self.width // 2, (self.height * 3) // 10 + 70) )
                 self.screen.blit(self.score, score_rect)
-                self.draw_button(self.restart_button, "Play Again")
                 self.draw_button(self.mainmenu_button, "Main Menu")
 
     def draw_button(self, rect, text):
@@ -149,9 +147,7 @@ class Menu:
                     elif self.back_button.collidepoint(event.pos):
                         return "back"
                 case "GameOver":
-                    if self.restart_button.collidepoint(event.pos):
-                        return "start"
-                    elif self.mainmenu_button.collidepoint(event.pos):
+                    if self.mainmenu_button.collidepoint(event.pos):
                         return "menu"
         return None
 
@@ -210,5 +206,8 @@ class Menu:
                         if left_area.collidepoint(mouse_pos):
                             self.depth = max(1, self.depth - 1)
                         elif right_area.collidepoint(mouse_pos):
-                            self.depth = min(10, self.depth + 1)
+                            self.depth = min(10, self.depth + 1)      
+        
+        return self.depth
+    
    

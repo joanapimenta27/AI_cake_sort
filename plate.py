@@ -69,3 +69,8 @@ class Plate:
                 flavor = s.cake_index()
                 counts[flavor] = counts.get(flavor, 0) + 1
         return list(counts.items())
+
+    def clone(self):
+        new_plate = Plate()
+        new_plate.slices = [s.clone() if s is not None else None for s in self.slices]
+        return new_plate
