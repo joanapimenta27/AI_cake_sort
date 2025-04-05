@@ -1,47 +1,19 @@
 import pygame
 
 from input_handler import *
-from utils import generate_cakes
+from utils import *
+from algorithm import *
 from menu import Menu
 from settings import SettingsMenu
 from scoreboard import Scoreboard
 from board import Board
 from plate import Plate
 from table import Table
+from state import State
 from plate_renderer import PlateRenderer
 from slice_renderer import SliceRenderer
 from board_renderer import BoardRenderer
 from table_renderer import TableRenderer
-
-
-def draw_pause_button(screen, pause_rect, button_font):
-    mouse_pos = pygame.mouse.get_pos()
-    if pause_rect.collidepoint(mouse_pos):
-        bg_color = (200, 150, 170)
-    else:
-        bg_color = (235, 182, 203)
-    
-    pygame.draw.rect(screen, bg_color, pause_rect, border_radius=10)
-    pygame.draw.rect(screen, (255, 255, 255), pause_rect, 3, border_radius=10)
-    
-    bar_width = pause_rect.width // 5
-    bar_height = int(pause_rect.height * 0.6)
-    gap = bar_width // 2
-    
-    bar1 = pygame.Rect(
-        pause_rect.centerx - gap - bar_width,
-        pause_rect.centery - bar_height // 2,
-        bar_width,
-        bar_height
-    )
-    bar2 = pygame.Rect(
-        pause_rect.centerx + gap,
-        pause_rect.centery - bar_height // 2,
-        bar_width,
-        bar_height
-    )
-    pygame.draw.rect(screen, (255, 255, 255), bar1)
-    pygame.draw.rect(screen, (255, 255, 255), bar2)
 
 
 
@@ -60,7 +32,7 @@ def main():
 
 
     #========================= PREPARE CELL SIZE ==========================#
-    rows, cols = 4, 4  # Numero de linhas e colunas do tabuleiro
+    rows, cols = 3, 3  # Numero de linhas e colunas do tabuleiro
     board_min_sides_margin = 50  # Margem lateral minima do tabuleiro
     board_min_top_margin = 100  # Margem superior mínima do tabuleiro
     table_margin_top = 100  # Espaço minimo entre a mesa e o tabuleiro
@@ -95,7 +67,7 @@ def main():
     seed = 69
     number_of_cakes = 10
     cakes = generate_cakes(cake_data, slice_count, number_of_cakes, seed)
-    print(cakes)
+    #print(cakes)
     #___________________________ PREPARE CAKES ____________________________#
 
 
@@ -113,7 +85,7 @@ def main():
     plates_on_table = 3
     table_side_img_width = 100
     table = Table(table_padding, table_side_img_width, plates_on_table)
-    table.get_plates(plates_on_table, cakes)
+    table.get_plates(cakes)
     table_side_img = pygame.image.load("assets/table_side.png")
     table_side_img = pygame.transform.scale(table_side_img, (table_side_img_width, cell_size + table_padding*2))
     table_img = pygame.image.load("assets/table.png")
@@ -140,8 +112,11 @@ def main():
         scoreboard.reset_score()
         table.reset()
         board.reset()
+        table.get_plates(cakes)
 
     #============================ PREPARE MENU =============================#
+    algorithm_depth = 2
+    visualize = False
     menu = Menu(screen)
     ai_menu = Menu(screen, "AIMenu")
     bfs_menu = Menu(screen, "BFSMenu")
@@ -202,13 +177,81 @@ def main():
                     action = bfs_menu.handle_event(event)
                     adjust = bfs_menu.handle_int_button_event(event)
                     if action == "start_1":
-                        print(action)
+                        visualize = False
+                        game_state = "BFSPlaying"
+                        algorithm_depth = adjust
                     elif action == "start_2":
-                        print(action)
+                        visualize = True
+                        game_state = "BFSPlaying"
+                        algorithm_depth = adjust
                     elif action == "back":
                         game_state = "AIMenu"
                 bfs_menu.draw()
                 pygame.display.flip()
+            
+
+            case "BFSPlaying":
+                screen.fill((200, 200, 250))
+                board_renderer.draw(screen)
+                table_renderer.draw(screen)
+                plate_renderer.draw(screen)
+                scoreboard.draw()
+                pygame.display.flip()
+
+                current_state = State(board, table, cakes, scoreboard)
+                
+                best_moves = bfs_solver(current_state, algorithm_depth)
+                
+                if (len(best_moves) == len(current_state.cakes) + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
+                    for move in best_moves:
+                        new_state = apply_move(current_state, move)
+                        
+                        board = new_state.board
+                        table = new_state.table
+                        cakes = new_state.cakes
+                        scoreboard = Scoreboard(screen)
+                        scoreboard.score = new_state.scoreboard.score
+                        
+                        board_renderer.board = board
+                        table_renderer.table = table
+                        plate_renderer.board = board
+                        plate_renderer.table = table
+                        
+                        screen.fill((200, 200, 250))
+                        board_renderer.draw(screen)
+                        table_renderer.draw(screen)
+                        plate_renderer.draw(screen)
+                        scoreboard.draw()
+                        pygame.display.flip()
+                        
+                        if visualize:
+                            pygame.time.delay(2000)
+                        
+                        current_state = new_state
+
+                elif best_moves:
+                    next_move = best_moves[0]
+                    new_state = apply_move(current_state, next_move)
+                    
+                    board = new_state.board
+                    table = new_state.table
+                    cakes = new_state.cakes
+                    scoreboard = Scoreboard(screen)
+                    scoreboard.score = new_state.scoreboard.score
+
+                    board_renderer.board = board
+                    table_renderer.table = table
+                    plate_renderer.board = board
+                    plate_renderer.table = table
+
+
+                    if visualize:
+                        pygame.time.delay(2000)
+
+                else:
+                    print("No valid move found. Ending BFSPlaying state.")
+                    game_state = "GameOver"
+
         
 
             case "Playing":
@@ -229,7 +272,7 @@ def main():
                     game_state = "GameOver"
 
                 if table.has_no_plates():
-                    table.get_plates(plates_on_table, cakes)
+                    table.get_plates(cakes)
                 
                 screen.fill((200, 200, 250))
 
@@ -297,13 +340,10 @@ def main():
                         #+sys.exit()
 
                     action = game_over_menu.handle_event(event)
-
-                    if action == "start":
-                        game_state = "Playing"
-                        initialize_game()
                     
-                    elif action == "menu":
+                    if action == "menu":
                         game_state = "Menu"
+                        initialize_game()
                 game_over_menu.draw()
                 pygame.display.flip()
     #____________________________ MAIN LOOP ______________________________#

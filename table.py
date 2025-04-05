@@ -28,16 +28,35 @@ class Table:
         ValueError(f"Invalid plate index: {index}")
         return None
     
-    def get_plates(self, plates_on_table, cakes):
-        plates = cakes[:plates_on_table]
-        del cakes[:plates_on_table]
+    def get_plates(self, cakes): # Isto é para ir buscar a lista dos bolos
+        plates = cakes[:self.max_plates]
+        del cakes[:self.max_plates]
         for plate in plates:
             self.add_plate(plate)
         return plates
+    
+    def get_plates_on_table(self):
+        return [plate for plate in self.plates if plate is not None]
     
     def has_no_plates(self):
         return all(plate is None for plate in self.plates)
 
     def reset(self):
         self.plates = [None] * self.max_plates
+    
+
+    def clone(self):
+        new_table = Table(self.padding, self.side_img_width, self.max_plates)
+        new_table.plates = [plate.clone() if plate is not None else None for plate in self.plates]
+        return new_table
+
+    def __eq__(self, other):
+        if not isinstance(other, Table):
+            return False
+        return (self.padding == other.padding and 
+                self.table_side_img_width == other.table_side_img_width and
+                self.plates == other.plates)
+
+    def __str__(self):
+        return f"Table(plates_on_table={self.plates})"
         
