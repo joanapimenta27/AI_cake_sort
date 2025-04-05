@@ -164,6 +164,8 @@ def main():
                     action = ai_menu.handle_event(event)
                     if action == "BFS":
                         game_state = "BFSMenu"
+                    elif action == "Monte Carlo":
+                        game_state = "MonteCarloMenu"
                     elif action == "back":
                         game_state = "Menu"
                 ai_menu.draw()

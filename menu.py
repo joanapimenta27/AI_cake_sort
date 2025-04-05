@@ -36,6 +36,13 @@ class Menu:
                 self.start_2_button = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
                 self.depth_button = pygame.Rect(self.width // 2 - 325, self.height // 2 + 30, 300, 60)
                 self.back_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 30, 300, 60)
+            case "MonteCarloMenu":
+                self.title = self.font.render("Monte Carlo Menu", True, (235, 182, 203))
+                self.info = self.info_font.render("Depth", True, (235, 182, 203))
+                self.start_1_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
+                self.start_2_button = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
+                self.depth_button = pygame.Rect(self.width // 2 - 325, self.height // 2 + 30, 300, 60)
+                self.back_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 30, 300, 60)
             case "GameOver":
                 self.title = self.font.render("Game Over", True, (235, 182, 203))
                 self.score = self.font.render(f"Score: {score}", True, (235, 182, 203))
@@ -68,6 +75,13 @@ class Menu:
                 self.draw_button(self.monte_carlo_button, "Monte Carlo")
                 self.draw_button(self.back_button, "Back")
             case "BFSMenu":
+                self.draw_button(self.start_1_button, "Start Machine Mode")
+                self.draw_button(self.start_2_button, "Start Spectator Mode")
+                self.draw_changable_buttons(self.depth_button, self.bfs_depth)
+                self.draw_button(self.back_button, "Back")
+                info_rect = self.info.get_rect(center=(self.width // 2 - 180, self.height // 2 + 110))
+                self.screen.blit(self.info, info_rect)
+            case "MonteCarloMenu":
                 self.draw_button(self.start_1_button, "Start Machine Mode")
                 self.draw_button(self.start_2_button, "Start Spectator Mode")
                 self.draw_changable_buttons(self.depth_button, self.bfs_depth)
@@ -118,6 +132,13 @@ class Menu:
                     elif self.back_button.collidepoint(event.pos):
                         return "back"
                 case "BFSMenu":
+                    if self.start_1_button.collidepoint(event.pos):
+                        return "start_1"
+                    elif self.start_2_button.collidepoint(event.pos):
+                        return "start_2"
+                    elif self.back_button.collidepoint(event.pos):
+                        return "back"
+                case "MonteCarloMenu":
                     if self.start_1_button.collidepoint(event.pos):
                         return "start_1"
                     elif self.start_2_button.collidepoint(event.pos):
