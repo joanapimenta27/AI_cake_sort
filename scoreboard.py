@@ -22,11 +22,13 @@ class Scoreboard:
     def draw(self):
         score_text = self.font.render(f"Score: {self.score}", True, self.color)
         text_rect = score_text.get_rect(center=(self.width // 2, 30))
-
-        # Draw background with border
         bg_rect = pygame.Rect(text_rect.x - 10, text_rect.y - 5, text_rect.width + 20, text_rect.height + 10)
         pygame.draw.rect(self.screen, self.border_color, bg_rect, border_radius=10)
         pygame.draw.rect(self.screen, self.bg_color, bg_rect.inflate(-self.border_width, -self.border_width), border_radius=10)
 
-        # Draw text
         self.screen.blit(score_text, text_rect)
+    
+    def clone(self):
+        new_scoreboard = Scoreboard(self.screen, self.font.get_height(), self.color)
+        new_scoreboard.score = self.score
+        return new_scoreboard

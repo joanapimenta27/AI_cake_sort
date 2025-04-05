@@ -44,7 +44,7 @@ class Board:
                     adjacent.append(item)
         return adjacent
     
-    def clean_board(self,score):
+    def clean_board(self, score, delay=True):
         positions_to_remove = []
         for row in range(self.rows):
             for col in range(self.cols):
@@ -57,9 +57,10 @@ class Board:
             if  plate.is_empty():
                 score.update_score(10)
             elif plate.is_fully_uniform():
-                score.update_score(20)   
+                score.update_score(20)
             pygame.display.flip()
-            pygame.time.delay(600//len(positions_to_remove))
+            if delay:
+                pygame.time.delay(600//len(positions_to_remove))
             self.remove_item(*(row,col))
             pygame.display.flip()
     
@@ -67,5 +68,26 @@ class Board:
         for row in range(self.rows):
             for col in range(self.cols):
                 self.grid[row][col] = None
+
+    
+
+    def clone(self):
+        new_board = Board(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.grid[i][j] is not None:
+                    new_board.grid[i][j] = self.grid[i][j].clone()
+                else:
+                    new_board.grid[i][j] = None
+        return new_board
+
+    def __eq__(self, other):
+        if not isinstance(other, Board):
+            return False
+        return self.rows == other.rows and self.cols == other.cols and self.grid == other.grid
+
+    def __str__(self):
+        grid_str = "\n".join(str(row) for row in self.grid)
+        return f"Board({self.rows}x{self.cols}):\n{grid_str}"
 
         
