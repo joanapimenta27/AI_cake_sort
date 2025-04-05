@@ -198,17 +198,22 @@ def main():
                     if event.type == pygame.QUIT:
                         pygame.quit()
                         #+sys.exit()
-                    action = dfs_menu.handle_event(event)
-                    adjust = dfs_menu.handle_int_button_event(event)
-                    if action == "start":
-                        pass
+                    action = bfs_menu.handle_event(event)
+                    adjust = bfs_menu.handle_int_button_event(event)
+                    if action == "start_1":
+                        visualize = False
+                        game_state = "DFSPlaying"
+                        algorithm_depth = adjust
+                    elif action == "start_2":
+                        visualize = True
+                        game_state = "DFSPlaying"
+                        algorithm_depth = adjust
                     elif action == "back":
                         game_state = "AIMenu"
-                dfs_menu.draw()
+                bfs_menu.draw()
                 pygame.display.flip()
                 
             
-
             case "BFSPlaying":
                 screen.fill((200, 200, 250))
                 board_renderer.draw(screen)
@@ -269,6 +274,68 @@ def main():
 
                 else:
                     print("No valid move found. Ending BFSPlaying state.")
+                    game_state = "GameOver"
+
+            case "DFSPlaying":
+                screen.fill((200, 200, 250))
+                board_renderer.draw(screen)
+                table_renderer.draw(screen)
+                plate_renderer.draw(screen)
+                scoreboard.draw()
+                pygame.display.flip()
+
+                current_state = State(board, table, cakes, scoreboard)
+                
+                best_moves = dfs_solver(current_state, algorithm_depth)
+                
+                if (len(best_moves) == len(current_state.cakes) + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
+                    for move in best_moves:
+                        new_state = apply_move(current_state, move)
+                        
+                        board = new_state.board
+                        table = new_state.table
+                        cakes = new_state.cakes
+                        scoreboard = Scoreboard(screen)
+                        scoreboard.score = new_state.scoreboard.score
+                        
+                        board_renderer.board = board
+                        table_renderer.table = table
+                        plate_renderer.board = board
+                        plate_renderer.table = table
+                        
+                        screen.fill((200, 200, 250))
+                        board_renderer.draw(screen)
+                        table_renderer.draw(screen)
+                        plate_renderer.draw(screen)
+                        scoreboard.draw()
+                        pygame.display.flip()
+                        
+                        if visualize:
+                            pygame.time.delay(2000)
+                        
+                        current_state = new_state
+
+                elif best_moves:
+                    next_move = best_moves[0]
+                    new_state = apply_move(current_state, next_move)
+                    
+                    board = new_state.board
+                    table = new_state.table
+                    cakes = new_state.cakes
+                    scoreboard = Scoreboard(screen)
+                    scoreboard.score = new_state.scoreboard.score
+
+                    board_renderer.board = board
+                    table_renderer.table = table
+                    plate_renderer.board = board
+                    plate_renderer.table = table
+
+
+                    if visualize:
+                        pygame.time.delay(2000)
+
+                else:
+                    print("No valid move found. Ending DFSPlaying state.")
                     game_state = "GameOver"
 
         
