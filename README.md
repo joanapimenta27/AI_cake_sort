@@ -8,7 +8,7 @@ Cake Sort is a puzzle game developed in Python using Pygame. The game challenges
   - **Human Mode:** Manually select and place plates.  
   - **AI Mode:** Choose between different search algorithms to let the AI play the game.
 - **Settings:**  
-  - **Changeble Game Settings:** In the settings you can change all kinds of aspects of the game (board size, number of slices, algorithms used to calculate hints given, number of plates in table and even number of total cakes the game will have).  
+  - **Changeable Game Settings:** In the settings you can change all kinds of aspects of the game (board size, number of slices, algorithms used to calculate hints given, number of plates in table and even number of total cakes the game will have).  
 - **Search Algorithms:**  
   - **Uninformed Search:** DFS and BFS  
   - **Informed Search:** Greedy and A*  
