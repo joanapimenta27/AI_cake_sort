@@ -12,6 +12,7 @@ class Menu:
         self.info_font = pygame.font.SysFont("comicsans", 50)
         self.button_font = pygame.font.SysFont("comicsans", 30)
         self.depth = 2
+        self.iteractions = 500
  
 
 
@@ -43,7 +44,17 @@ class Menu:
                 self.start_1_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
                 self.start_2_button = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
                 self.depth_button = pygame.Rect(self.width // 2 - 325, self.height // 2 + 30, 300, 60)
-                self.back_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 30, 300, 60)            
+                self.back_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 30, 300, 60)   
+            case "MonteCarloMenu":
+                self.depth = 30
+                self.title = self.font.render("Monte Carlo Menu", True, (235, 182, 203))
+                self.info = self.info_font.render("Iterations", True, (235, 182, 203))
+                self.info2 = self.info_font.render("Depth/Iteration", True, (235, 182, 203))
+                self.start_1_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
+                self.start_2_button = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
+                self.depth_button = pygame.Rect(self.width // 2 + 25, self.height // 2 + 30, 300, 60)
+                self.iteractions_button = pygame.Rect(self.width // 2 - 325, self.height // 2 + 30, 300, 60)
+                self.back_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 150, 300, 60)
             case "GameOver":
                 self.title = self.font.render("Game Over", True, (235, 182, 203))
                 self.score = self.font.render(f"Score: {score}", True, (235, 182, 203))
@@ -89,6 +100,16 @@ class Menu:
                 self.draw_button(self.back_button, "Back")
                 info_rect = self.info.get_rect(center=(self.width // 2 - 180, self.height // 2 + 110))
                 self.screen.blit(self.info, info_rect)
+            case "MonteCarloMenu":
+                self.draw_button(self.start_1_button, "Start Machine Mode")
+                self.draw_button(self.start_2_button, "Start Spectator Mode")
+                self.draw_changable_buttons(self.depth_button, self.depth)
+                self.draw_changable_buttons(self.iteractions_button, self.iteractions)
+                self.draw_button(self.back_button, "Back")
+                info_rect = self.info.get_rect(center=(self.width // 2 - 175, self.height // 2 + 110))
+                self.screen.blit(self.info, info_rect)
+                info_rect2 = self.info2.get_rect(center=(self.width // 2 + 175, self.height // 2 + 110))
+                self.screen.blit(self.info2, info_rect2)
             case "GameOver":
                 score_rect = self.score.get_rect(center=(self.width // 2, (self.height * 3) // 10 + 70) )
                 self.screen.blit(self.score, score_rect)
@@ -146,6 +167,13 @@ class Menu:
                         return "start_2"
                     elif self.back_button.collidepoint(event.pos):
                         return "back"
+                case "MonteCarloMenu":
+                    if self.start_1_button.collidepoint(event.pos):
+                        return "start_1"
+                    elif self.start_2_button.collidepoint(event.pos):
+                        return "start_2"
+                    elif self.back_button.collidepoint(event.pos):
+                        return "back"
                 case "GameOver":
                     if self.mainmenu_button.collidepoint(event.pos):
                         return "menu"
@@ -189,24 +217,39 @@ class Menu:
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
-            if self.depth_button.collidepoint(mouse_pos):
-                match self.menu_type:
-                    case "BFSMenu":
-                        third_width = self.depth_button.width // 3
-                        left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
-                        right_area = pygame.Rect(self.depth_button.right - third_width, self.depth_button.top, third_width, self.depth_button.height)
-                        if left_area.collidepoint(mouse_pos):
-                            self.depth = max(1, self.depth - 1)
-                        elif right_area.collidepoint(mouse_pos):
-                            self.depth = min(10, self.depth + 1)
-                    case "DFSMenu":
-                        third_width = self.depth_button.width // 3
-                        left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
-                        right_area = pygame.Rect(self.depth_button.right - third_width, self.depth_button.top, third_width, self.depth_button.height)
-                        if left_area.collidepoint(mouse_pos):
-                            self.depth = max(1, self.depth - 1)
-                        elif right_area.collidepoint(mouse_pos):
-                            self.depth = min(10, self.depth + 1)      
+            match self.menu_type:
+                case "BFSMenu":
+                    third_width = self.depth_button.width // 3
+                    left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
+                    right_area = pygame.Rect(self.depth_button.right - third_width, self.depth_button.top, third_width, self.depth_button.height)
+                    if left_area.collidepoint(mouse_pos):
+                        self.depth = max(1, self.depth - 1)
+                    elif right_area.collidepoint(mouse_pos):
+                        self.depth = min(7, self.depth + 1)
+                case "DFSMenu":
+                    third_width = self.depth_button.width // 3
+                    left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
+                    right_area = pygame.Rect(self.depth_button.right - third_width, self.depth_button.top, third_width, self.depth_button.height)
+                    if left_area.collidepoint(mouse_pos):
+                        self.depth = max(1, self.depth - 1)
+                    elif right_area.collidepoint(mouse_pos):
+                        self.depth = min(7, self.depth + 1)    
+                case "MonteCarloMenu":
+                    third_width = self.depth_button.width // 3
+                    left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
+                    right_area = pygame.Rect(self.depth_button.right - third_width, self.depth_button.top, third_width, self.depth_button.height)
+                    if left_area.collidepoint(mouse_pos):
+                        self.depth = max(1, self.depth - 1)
+                    elif right_area.collidepoint(mouse_pos):
+                        self.depth = min(50, self.depth + 1)
+                    third_width2 = self.iteractions_button.width // 3
+                    left_area2 = pygame.Rect(self.iteractions_button.left, self.iteractions_button.top, third_width2, self.iteractions_button.height)
+                    right_area2 = pygame.Rect(self.iteractions_button.right - third_width2, self.iteractions_button.top, third_width2, self.iteractions_button.height)
+                    if left_area2.collidepoint(mouse_pos):
+                        self.iteractions = max(100, self.iteractions - 100)
+                    elif right_area2.collidepoint(mouse_pos):
+                        self.iteractions = min(5000, self.iteractions + 100)
+                    return self.iteractions, self.depth
         
         return self.depth
     
