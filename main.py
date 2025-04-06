@@ -65,8 +65,9 @@ def main():
     Plate.max_slices = slice_count
     #--> Gerar os bolos
     seed = 69
-    number_of_cakes = 10
+    number_of_cakes = 100
     cakes = generate_cakes(cake_data, slice_count, number_of_cakes, seed)
+    cake_offset = 0
     #print(cakes)
     #___________________________ PREPARE CAKES ____________________________#
 
@@ -85,7 +86,7 @@ def main():
     plates_on_table = 3
     table_side_img_width = 100
     table = Table(table_padding, table_side_img_width, plates_on_table)
-    table.get_plates(cakes)
+    cake_offset = table.get_plates(cakes, cake_offset)
     table_side_img = pygame.image.load("assets/table_side.png")
     table_side_img = pygame.transform.scale(table_side_img, (table_side_img_width, cell_size + table_padding*2))
     table_img = pygame.image.load("assets/table.png")
@@ -107,20 +108,23 @@ def main():
     plate_is_selected = False
 
     def initialize_game():
-        nonlocal cakes, scoreboard, table, board
+        nonlocal cakes, cake_offset, scoreboard, table, board
         cakes = generate_cakes(cake_data, slice_count, number_of_cakes, seed)
+        cake_offset = 0
         scoreboard.reset_score()
         table.reset()
         board.reset()
-        table.get_plates(cakes)
+        cake_offset = table.get_plates(cakes, cake_offset)
 
     #============================ PREPARE MENU =============================#
     algorithm_depth = 2
+    algorithm_iterations = 500
     visualize = False
     menu = Menu(screen)
     ai_menu = Menu(screen, "AIMenu")
     bfs_menu = Menu(screen, "BFSMenu")
     dfs_menu = Menu(screen, "DFSMenu")
+    monte_carlo_menu = Menu(screen, "MonteCarloMenu")
     game_over_menu = Menu(screen, "GameOver", scoreboard.score)
     #__________________________ PREPARE MENU _____________________________#
 
@@ -198,21 +202,6 @@ def main():
                         game_state = "AIMenu"
                 bfs_menu.draw()
                 pygame.display.flip()
-
-            case "DFSMenu":
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        #+sys.exit()
-                    action = dfs_menu.handle_event(event)
-                    adjust = dfs_menu.handle_int_button_event(event)
-                    if action == "start":
-                        pass
-                    elif action == "back":
-                        game_state = "AIMenu"
-                dfs_menu.draw()
-                pygame.display.flip()
-                
             
 
             case "BFSPlaying":
@@ -223,17 +212,18 @@ def main():
                 scoreboard.draw()
                 pygame.display.flip()
 
-                current_state = State(board, table, cakes, scoreboard)
+                current_state = State(board, table, cake_offset, scoreboard)
                 
-                best_moves = bfs_solver(current_state, algorithm_depth)
+                best_moves = bfs_solver(current_state, algorithm_depth, cakes)
                 
-                if (len(best_moves) == len(current_state.cakes) + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
+                if (len(best_moves) == len(cakes) - current_state.cake_offset + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
                     for move in best_moves:
-                        new_state = apply_move(current_state, move)
+                        new_state = apply_move(current_state, move, cakes)
                         
                         board = new_state.board
                         table = new_state.table
-                        cakes = new_state.cakes
+                        cake_offset = new_state.cake_offset
+                        print(new_state.cake_offset)
                         scoreboard = Scoreboard(screen)
                         scoreboard.score = new_state.scoreboard.score
                         
@@ -256,11 +246,12 @@ def main():
 
                 elif best_moves:
                     next_move = best_moves[0]
-                    new_state = apply_move(current_state, next_move)
+                    new_state = apply_move(current_state, next_move, cakes)
                     
                     board = new_state.board
                     table = new_state.table
-                    cakes = new_state.cakes
+                    cake_offset = new_state.cake_offset
+                    print(new_state.cake_offset)
                     scoreboard = Scoreboard(screen)
                     scoreboard.score = new_state.scoreboard.score
 
@@ -279,6 +270,107 @@ def main():
 
         
 
+            case "DFSMenu":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
+                    action = dfs_menu.handle_event(event)
+                    adjust = dfs_menu.handle_int_button_event(event)
+                    if action == "start":
+                        pass
+                    elif action == "back":
+                        game_state = "AIMenu"
+                dfs_menu.draw()
+                pygame.display.flip()
+            
+
+            case "MonteCarloMenu":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
+                    action = monte_carlo_menu.handle_event(event)
+                    adjust = monte_carlo_menu.handle_int_button_event(event)
+                    if action == "start_1":
+                        visualize = False
+                        game_state = "MonteCarloPlaying"
+                        algorithm_iterations, algorithm_depth = adjust
+                    elif action == "start_2":
+                        visualize = True
+                        game_state = "MonteCarloPlaying"
+                        algorithm_iterations, algorithm_depth = adjust
+                    elif action == "back":
+                        game_state = "AIMenu"
+                monte_carlo_menu.draw()
+                pygame.display.flip()
+            
+
+            case "MonteCarloPlaying":
+                screen.fill((200, 200, 250))
+                board_renderer.draw(screen)
+                table_renderer.draw(screen)
+                plate_renderer.draw(screen)
+                scoreboard.draw()
+                pygame.display.flip()
+
+                current_state = State(board, table, cake_offset, scoreboard)
+                
+                best_moves = monte_carlo_solver(current_state, algorithm_iterations, algorithm_depth, cakes)
+                
+                if (len(best_moves) == len(cakes) - current_state.cake_offset + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
+                    for move in best_moves:
+                        new_state = apply_move(current_state, move, cakes)
+                        
+                        board = new_state.board
+                        table = new_state.table
+                        cake_offset = new_state.cake_offset
+                        scoreboard = Scoreboard(screen)
+                        scoreboard.score = new_state.scoreboard.score
+
+                        board_renderer.board = board
+                        table_renderer.table = table
+                        plate_renderer.board = board
+                        plate_renderer.table = table
+
+                        screen.fill((200, 200, 250))
+                        board_renderer.draw(screen)
+                        table_renderer.draw(screen)
+                        plate_renderer.draw(screen)
+                        scoreboard.draw()
+                        pygame.display.flip()
+
+                        if visualize:
+                            pygame.time.delay(2000)
+
+                        current_state = new_state
+
+                elif best_moves:
+                    next_move = best_moves[0]
+                    new_state = apply_move(current_state, next_move, cakes)
+                    
+                    board = new_state.board
+                    table = new_state.table
+                    cake_offset = new_state.cake_offset
+                    scoreboard = Scoreboard(screen)
+                    scoreboard.score = new_state.scoreboard.score
+
+                    board_renderer.board = board
+                    table_renderer.table = table
+                    plate_renderer.board = board
+                    plate_renderer.table = table
+
+                    if visualize:
+                        pygame.time.delay(2000)
+
+                else:
+                    print("No valid move found. Ending MonteCarloPlaying state.")
+                    game_state = "GameOver"
+
+                pygame.display.flip()
+
+
+
             case "Playing":
                 clock = pygame.time.Clock()
                 clock.tick(60)
@@ -293,11 +385,9 @@ def main():
                             pos = pygame.mouse.get_pos()
                             selected_plate = handle_plate_selection(pos, selected_plate, board, table, board_side_margin, board_top_margin, cell_size)
                 
-                if len(cakes) == 0:
-                    game_state = "GameOver"
 
                 if table.has_no_plates():
-                    table.get_plates(cakes)
+                    cake_offset = table.get_plates(cakes, cake_offset)
                 
                 screen.fill((200, 200, 250))
 
@@ -309,6 +399,11 @@ def main():
 
                 scoreboard.draw()
                 draw_pause_button(screen, pause_button_rect, menu.button_font)
+
+                if len(cakes) - cake_offset == 0 and table.has_no_plates():
+                    pygame.display.flip()
+                    pygame.time.delay(2000)
+                    game_state = "GameOver"
                 
                 pygame.display.flip()
             
@@ -324,6 +419,7 @@ def main():
                         if continue_button_rect.collidepoint(event.pos):
                             game_state = "Playing"
                         elif leave_button_rect.collidepoint(event.pos):
+                            initialize_game()
                             game_state = "Menu"
                 
                 overlay = pygame.Surface((screen_width, screen_height))

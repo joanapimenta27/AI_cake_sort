@@ -107,7 +107,7 @@ def possible_moves(state):
 
 
 
-def apply_move(state, move):
+def apply_move(state, move, cakes):
     
     new_state = state.copy()
     table_index, row, col = move
@@ -115,8 +115,8 @@ def apply_move(state, move):
     new_state.board.place_item(row, col, plate)
     new_state.table.remove_plate(table_index)
 
-    if new_state.table.has_no_plates() and len(new_state.cakes) > 0:
-        new_state.table.get_plates(new_state.cakes)
+    if new_state.table.has_no_plates() and (len(cakes) - new_state.cake_offset) > 0:
+        new_state.cake_offset = new_state.table.get_plates(cakes, new_state.cake_offset)
     
     board = new_state.board
     adjacent_plates = board.get_adjacent_plates(row, col)
