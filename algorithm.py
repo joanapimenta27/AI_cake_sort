@@ -35,6 +35,31 @@ def bfs_solver(initial_state, depth, cakes):
 
 
 
+def dfs_solver(initial_state, depth, cakes):
+    visited = set()
+    stack = []
+    stack.append((initial_state, []))
+    visited.add(initial_state)
+
+    best_moves = []
+    best_score = -float('inf')
+    
+    while stack:
+        state, moves = stack.pop()
+
+        score = state.scoreboard.score
+        if score >= best_score:
+            best_score = score
+            best_moves = moves
+
+        if len(moves) < depth:
+            for move in possible_moves(state):
+                new_state = apply_move(state, move, cakes)
+                if new_state not in visited:
+                    visited.add(new_state)
+                    stack.append((new_state, moves + [move]))
+
+    return best_moves
 
 
 def monte_carlo_solver(initial_state, iterations, depth, cakes):
@@ -59,5 +84,4 @@ def monte_carlo_solver(initial_state, iterations, depth, cakes):
             best_moves = moves_sim
     
     return best_moves
-
 
