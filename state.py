@@ -11,10 +11,12 @@ class State:
         return State(self.board, self.table, self.cake_offset, self.scoreboard)
     
     def __eq__(self, other):
+        if not isinstance(other, State):
+            return False
         return (self.board == other.board and 
                 self.table == other.table and 
                 self.cake_offset == other.cake_offset and
-                self.scoreboard == other.score)
+                self.scoreboard == other.scoreboard)
     
     def __hash__(self):
         return hash((str(self.board), str(self.table), self.cake_offset, str(self.scoreboard)))

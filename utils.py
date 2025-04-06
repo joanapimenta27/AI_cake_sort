@@ -57,7 +57,6 @@ def generate_cakes(cake_data, slice_count, num_cakes, seed=None):
             cake.add_slice(slice)
         
         cakes.append(cake)
-    
     return cakes
 
 def draw_pause_button(screen, pause_rect, button_font):
@@ -154,3 +153,16 @@ def apply_move(state, move, cakes):
     merge_slices_between_plates(adjacent_plates, plate)
     board.clean_board(new_state.scoreboard, delay=False)
     return new_state
+
+def count_slices_by_flavor(plates):
+    flavor_counts = {}
+
+    for plate in plates:
+        for slice_obj in plate.slices:
+            if slice_obj is not None:
+                flavor = slice_obj.cake_index()
+                flavor_counts[flavor] = flavor_counts.get(flavor, 0) + 1
+
+    return flavor_counts
+
+
