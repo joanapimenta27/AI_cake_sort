@@ -88,6 +88,37 @@ def draw_pause_button(screen, pause_rect, button_font):
     pygame.draw.rect(screen, (255, 255, 255), bar1)
     pygame.draw.rect(screen, (255, 255, 255), bar2)
 
+def draw_hint_button(screen, rect, font):
+    mouse_pos = pygame.mouse.get_pos()
+    if rect.collidepoint(mouse_pos):
+        bg_color = (200, 150, 170)
+    else:
+        bg_color = (235, 182, 203)
+    pygame.draw.rect(screen, bg_color, rect, border_radius=10)
+    pygame.draw.rect(screen, (255, 255, 255), rect, 3, border_radius=10)
+    hint_text = font.render("Hint", True, (255, 255, 255))
+    text_rect = hint_text.get_rect(center=rect.center)
+    screen.blit(hint_text, text_rect)
+
+def draw_hint_indicator(screen, hint_move, cell_size, board_side_margin, board_top_margin, table_x, table_y, plate_padding=10):
+    if hint_move is None:
+        return
+    plate_idx, row, col = hint_move
+    
+    board_x = board_side_margin + col * cell_size
+    board_y = board_top_margin + row * cell_size
+    board_hint_rect = pygame.Rect(board_x, board_y, cell_size, cell_size)
+    board_overlay = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
+    board_overlay.fill((255, 255, 0, 50))
+    screen.blit(board_overlay, (board_x, board_y))
+    
+    plate_x = table_x + plate_idx * (cell_size + plate_padding) + plate_padding
+    plate_y = table_y
+    plate_hint_rect = pygame.Rect(plate_x, plate_y, cell_size, cell_size)
+    plate_overlay = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
+    plate_overlay.fill((255, 255, 0, 50))
+    screen.blit(plate_overlay, (plate_x, plate_y))
+
 def possible_moves(state):
 
     moves = []

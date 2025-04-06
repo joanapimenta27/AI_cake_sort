@@ -13,6 +13,7 @@ class PlateRenderer:
         self.highlight_img = highlight_img
         self.cell_size = cell_size
         self.slice_renderer = slice_renderer
+        self.spacing = 0
 
     
     def draw(self, screen, selected_plate=None):
@@ -46,10 +47,10 @@ class PlateRenderer:
         num_plates = len(self.table.plates)
 
         if num_plates > 0:
-            spacing = (table_width - self.cell_size*max_plates) // (max_plates + 1)
+            self.spacing = (table_width - self.cell_size*max_plates) // (max_plates + 1)
             for i, plate in enumerate(plates):
                 if plate is not None:
-                    cx = side_width + spacing + i * (self.cell_size + spacing)
+                    cx = side_width + self.spacing + i * (self.cell_size + self.spacing)
                     cy = screen_height - table_height + self.table.padding
                     screen.blit(self.plate_image, (cx, cy))
 

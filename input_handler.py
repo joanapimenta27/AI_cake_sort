@@ -48,6 +48,6 @@ def handle_plate_selection(pos, selected_plate, board, table, board_side_margin,
                 merge_slices_between_plates(adjacent_plates, selected_plate)
                 if selected_plate in table.plates:
                     table.remove_plate(table.plates.index(selected_plate))
-                return None
+                return "Placed"
         
         return selected_plate
