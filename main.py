@@ -540,7 +540,21 @@ def main():
 
                 current_state = State(board, table, cake_offset, scoreboard)
                 
-                best_moves = greedy_solver(current_state,  cakes)
+                start_time = time.perf_counter()
+                best_moves, nodes_visited = greedy_solver(current_state,  cakes)
+                end_time = time.perf_counter()
+
+                time_taken = end_time - start_time
+
+                csv_file_path = "results/greedy_metrics.csv"
+                file_exists = os.path.isfile(csv_file_path)
+
+                if not visualize:
+                    with open("results/greedy_metrics.csv", "a", newline="") as csvfile:
+                        writer = csv.writer(csvfile)
+                        if not file_exists:
+                            writer.writerow(["Time Taken", "Nodes Visited", "Best Moves Count", "Cakes Count", "Score"])
+                        writer.writerow([time_taken, nodes_visited, len(best_moves), len(cakes), scoreboard.score])
                 
                 if (len(best_moves) == len(cakes) - current_state.cake_offset + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
                     for move in best_moves:
@@ -610,7 +624,7 @@ def main():
                         algorithm_iterations, algorithm_depth = adjust
                     elif action == "back":
                         game_state = "AIMenu"
-                monte_carlo_menu.draw()
+                a_menu.draw()
                 pygame.display.flip()
             
 
@@ -623,8 +637,22 @@ def main():
                 pygame.display.flip()
 
                 current_state = State(board, table, cake_offset, scoreboard)
-               
-                best_moves =  a_star_solver(current_state, cakes, slice_count, algorithm_depth, algorithm_iterations)
+                
+                start_time = time.perf_counter()
+                best_moves, nodes_visited =  a_star_solver(current_state, cakes, slice_count, algorithm_depth, algorithm_iterations)
+                end_time = time.perf_counter()
+
+                time_taken = end_time - start_time
+
+                csv_file_path = "results/a_star_metrics.csv"
+                file_exists = os.path.isfile(csv_file_path)
+
+                if not visualize:
+                    with open("results/a_star_metrics.csv", "a", newline="") as csvfile:
+                        writer = csv.writer(csvfile)
+                        if not file_exists:
+                            writer.writerow(["Time Taken", "Nodes Visited", "Algorithm Depth", "Algorithm Iterations", "Best Moves Count", "Cakes Count", "Score"])
+                        writer.writerow([time_taken, nodes_visited, algorithm_depth, algorithm_iterations, len(best_moves), len(cakes), scoreboard.score])
                 
                 if (len(best_moves) == len(cakes) - current_state.cake_offset + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
                     for move in best_moves:

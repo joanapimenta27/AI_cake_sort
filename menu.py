@@ -73,7 +73,7 @@ class Menu:
                 self.back_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 30, 300, 60) 
             case "A*Menu":
                 self.depth = 30
-                self.title = self.font.render("Monte Carlo Menu", True, (235, 182, 203))
+                self.title = self.font.render("A* Menu", True, (235, 182, 203))
                 self.info = self.info_font.render("Iterations", True, (235, 182, 203))
                 self.info2 = self.info_font.render("Depth/Iteration", True, (235, 182, 203))
                 self.start_1_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)

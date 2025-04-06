@@ -105,17 +105,15 @@ def monte_carlo_solver(initial_state, iterations, depth, cakes):
 
 def hint_solver(initial_state, algorithm, cakes, slice_count):
     if algorithm == 'BFS':
-        return bfs_solver(initial_state, 2, cakes)[0]
+        return bfs_solver(initial_state, 2, cakes)[0][0]
     elif algorithm == 'DFS':
-        return dfs_solver(initial_state, 2, cakes)[0]
-    elif algorithm == 'greedy':
-        return greedy_solver(initial_state, cakes)[0]
-        pass
+        return dfs_solver(initial_state, 2, cakes)[0][0]
+    elif algorithm == 'Greedy':
+        return greedy_solver(initial_state, cakes)[0][0]
     elif algorithm == 'A*':
-        return a_star_solver(initial_state, cakes, slice_count, 5, 1000)[0]
-        pass
+        return a_star_solver(initial_state, cakes, slice_count, 5, 1000)[0][0]
     elif algorithm == 'Monte Carlo':
-        return monte_carlo_solver(initial_state, 100, 15, cakes)[0]
+        return monte_carlo_solver(initial_state, 100, 15, cakes)[0][0]
     else:
         raise ValueError(f"Unknown algorithm: {algorithm}")
     
@@ -123,6 +121,7 @@ def hint_solver(initial_state, algorithm, cakes, slice_count):
 def greedy_solver(current_state, cakes):
 
     best_moves = []
+    nodes_visited = 0
 
     while True:
         candidate_best_move = None
@@ -141,6 +140,8 @@ def greedy_solver(current_state, cakes):
                 candidate_best_score = new_score
                 candidate_best_move = move
                 candidate_best_state = new_state
+            
+            nodes_visited += 1
 
         if candidate_best_move is None:
             break
@@ -148,7 +149,7 @@ def greedy_solver(current_state, cakes):
         best_moves.append(candidate_best_move)
         current_state = candidate_best_state
 
-    return best_moves
+    return best_moves, nodes_visited
 
 def heuristic(state, cakes, slice_count):
     board =state.board
@@ -208,6 +209,7 @@ def a_star_solver(initial_state, cakes, slice_count, max_depth=5, max_iterations
     best_path = []
     best_score = initial_state.scoreboard.score
     iterations = 0
+    nodes_visited = 0
     start_time = time.time()
 
     
@@ -239,6 +241,7 @@ def a_star_solver(initial_state, cakes, slice_count, max_depth=5, max_iterations
 
         for move in moves:
             new_state = apply_move(current_state, move, cakes)
+            nodes_visited += 1
             new_path = path + [move]
             new_cost = cost(new_state)
             new_priority = new_cost + heuristic(new_state, cakes, slice_count)
@@ -251,10 +254,10 @@ def a_star_solver(initial_state, cakes, slice_count, max_depth=5, max_iterations
         fallback_moves = possible_moves(initial_state)
         if fallback_moves:
             print("Returning fallback move.")
-            return [fallback_moves[0]]
+            return [fallback_moves[0]], nodes_visited
         else:
             print("No fallback move available.")
-            return []
-    return best_path
+            return [], nodes_visited
+    return best_path, nodes_visited
 
 
