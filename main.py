@@ -125,6 +125,7 @@ def main():
     bfs_menu = Menu(screen, "BFSMenu")
     dfs_menu = Menu(screen, "DFSMenu")
     monte_carlo_menu = Menu(screen, "MonteCarloMenu")
+    greedy_menu = Menu(screen, "GreedyMenu")
     game_over_menu = Menu(screen, "GameOver", scoreboard.score)
     #__________________________ PREPARE MENU _____________________________#
 
@@ -173,7 +174,7 @@ def main():
                     elif action == "DFS":
                         game_state = "DFSMenu"
                     elif action == "Greedy":
-                        pass
+                        game_state = "GreedyMenu"
                     elif action == "AStar":
                         pass
                     elif action == "Monte Carlo":
@@ -437,6 +438,85 @@ def main():
 
                 pygame.display.flip()
 
+            case "GreedyMenu":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        #+sys.exit()
+                    action = greedy_menu.handle_event(event)
+                    if action == "start_1":
+                        visualize = False
+                        game_state = "GreedyPlaying"
+                    elif action == "start_2":
+                        visualize = True
+                        game_state = "GreedyPlaying"
+                    elif action == "back":
+                        game_state = "AIMenu"
+                greedy_menu.draw()
+                pygame.display.flip()
+            
+            case "GreedyPlaying":
+                screen.fill((200, 200, 250))
+                board_renderer.draw(screen)
+                table_renderer.draw(screen)
+                plate_renderer.draw(screen)
+                scoreboard.draw()
+                pygame.display.flip()
+
+                current_state = State(board, table, cake_offset, scoreboard)
+                
+                best_moves = greedy_solver(current_state,  cakes)
+                
+                if (len(best_moves) == len(cakes) - current_state.cake_offset + len(current_state.table.get_plates_on_table())) and len(best_moves) > 0:
+                    for move in best_moves:
+                        new_state = apply_move(current_state, move, cakes)
+                        
+                        board = new_state.board
+                        table = new_state.table
+                        cake_offset = new_state.cake_offset
+                        scoreboard = Scoreboard(screen)
+                        scoreboard.score = new_state.scoreboard.score
+
+                        board_renderer.board = board
+                        table_renderer.table = table
+                        plate_renderer.board = board
+                        plate_renderer.table = table
+
+                        screen.fill((200, 200, 250))
+                        board_renderer.draw(screen)
+                        table_renderer.draw(screen)
+                        plate_renderer.draw(screen)
+                        scoreboard.draw()
+                        pygame.display.flip()
+
+                        if visualize:
+                            pygame.time.delay(2000)
+
+                        current_state = new_state
+
+                elif best_moves:
+                    next_move = best_moves[0]
+                    new_state = apply_move(current_state, next_move, cakes)
+                    
+                    board = new_state.board
+                    table = new_state.table
+                    cake_offset = new_state.cake_offset
+                    scoreboard = Scoreboard(screen)
+                    scoreboard.score = new_state.scoreboard.score
+
+                    board_renderer.board = board
+                    table_renderer.table = table
+                    plate_renderer.board = board
+                    plate_renderer.table = table
+
+                    if visualize:
+                        pygame.time.delay(2000)
+
+                else:
+                    print("No valid move found. Ending GreedyPlaying state.")
+                    game_state = "GameOver"
+
+                pygame.display.flip()
 
 
             case "Playing":
