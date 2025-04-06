@@ -89,5 +89,18 @@ class Board:
     def __str__(self):
         grid_str = "\n".join(str(row) for row in self.grid)
         return f"Board({self.rows}x{self.cols}):\n{grid_str}"
+    
+    def get_cakes_from_board(self):
+        all_slices = []
+
+        for x in range(self.rows):
+            for y in range(self.cols):
+                cell = self.grid[x][y]
+                if isinstance(cell, Plate):
+                    all_slices.append(cell)
+
+        return all_slices
+
+
 
         
