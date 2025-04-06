@@ -15,7 +15,10 @@ def bfs_solver(initial_state, depth, cakes):
     best_moves = []
     best_score = -float('inf')
 
+    nodes_visited = 0
+
     while queue:
+        nodes_visited += 1
         state, moves = queue.popleft()
 
         score = state.scoreboard.score
@@ -31,7 +34,7 @@ def bfs_solver(initial_state, depth, cakes):
                     queue.append((new_state, moves + [move]))
     
 
-    return best_moves
+    return best_moves, nodes_visited
 
 
 
@@ -43,8 +46,11 @@ def dfs_solver(initial_state, depth, cakes):
 
     best_moves = []
     best_score = -float('inf')
-    
+
+    nodes_visited = 0
+
     while stack:
+        nodes_visited += 1
         state, moves = stack.pop()
 
         score = state.scoreboard.score
@@ -59,7 +65,7 @@ def dfs_solver(initial_state, depth, cakes):
                     visited.add(new_state)
                     stack.append((new_state, moves + [move]))
 
-    return best_moves
+    return best_moves, nodes_visited
 
 
 def monte_carlo_solver(initial_state, iterations, depth, cakes):
@@ -67,7 +73,9 @@ def monte_carlo_solver(initial_state, iterations, depth, cakes):
     best_moves = []
     best_score = -float('inf')
 
-    for i in range(iterations):
+    nodes_visited = 0
+
+    for _ in range(iterations):
         simulation_state = initial_state.copy()
         moves_sim = []
         for _ in range(depth):
@@ -77,11 +85,29 @@ def monte_carlo_solver(initial_state, iterations, depth, cakes):
             move = random.choice(moves)
             simulation_state = apply_move(simulation_state, move, cakes)
             moves_sim.append(move)
+            nodes_visited += 1
 
         score = simulation_state.scoreboard.score
         if score > best_score:
             best_score = score
             best_moves = moves_sim
+    return best_moves, nodes_visited
+
+
+def hint_solver(initial_state, algorithm, cakes):
+    if algorithm == 'BFS':
+        return bfs_solver(initial_state, 2, cakes)[0]
+    elif algorithm == 'DFS':
+        return dfs_solver(initial_state, 2, cakes)[0]
+    elif algorithm == 'greedy':
+        #return greedy_solver(initial_state, cakes)
+        pass
+    elif algorithm == 'a_star':
+        #return a_star_solver(initial_state, cakes)
+        pass
+    elif algorithm == 'Monte Carlo':
+        return monte_carlo_solver(initial_state, 100, 15, cakes)[0]
+    else:
+        raise ValueError(f"Unknown algorithm: {algorithm}")
     
-    return best_moves
 

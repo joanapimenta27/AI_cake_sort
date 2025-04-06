@@ -1,7 +1,6 @@
 import pygame
 import sys
 
-from settings import SettingsMenu
 
 class Menu:
     def __init__(self, screen, menu_type = "Start", score = 0):
@@ -12,7 +11,7 @@ class Menu:
         self.info_font = pygame.font.SysFont("comicsans", 50)
         self.button_font = pygame.font.SysFont("comicsans", 30)
         self.depth = 2
-        self.iteractions = 500
+        self.iteractions = 300
  
 
 
@@ -23,6 +22,28 @@ class Menu:
                 self.ai_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 30, 300, 60)
                 self.settings_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 110, 300, 60)
                 self.quit_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 190, 300, 60)
+            case "SettingsMenu":
+                self.rows = 3
+                self.columns = 3
+                self.cakes = 20
+                self.slices = 6
+                self.plates = 3
+                self.helper_list = ["BFS", "DFS", "Greedy", "A*", "Monte Carlo"]
+                self.helper_idx = 0
+                self.title = self.font.render("Settings", True, (235, 182, 203))
+                self.number_of_rows = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
+                self.info_rows = self.info_font.render("Rows", True, (235, 182, 203))
+                self.number_of_columns = pygame.Rect(self.width // 2 + 25, self.height // 2 - 50, 300, 60)
+                self.info_columns = self.info_font.render("Columns", True, (235, 182, 203))
+                self.number_of_cakes = pygame.Rect(self.width // 2 - 325, self.height // 2 + 70, 300, 60)
+                self.info_cakes = self.info_font.render("Cakes", True, (235, 182, 203))
+                self.number_of_slices = pygame.Rect(self.width // 2 + 25, self.height // 2 + 70, 300, 60)
+                self.info_slices = self.info_font.render("Slices", True, (235, 182, 203))
+                self.number_of_plates_on_table = pygame.Rect(self.width // 2 - 325, self.height // 2 + 190, 300, 60)
+                self.info_plates = self.info_font.render("Plates in Table", True, (235, 182, 203))
+                self.helper_algorithm = pygame.Rect(self.width // 2 + 25, self.height // 2 + 190, 300, 60)
+                self.info_helper = self.info_font.render("Helper Algorithm", True, (235, 182, 203))
+                self.back_button = pygame.Rect(self.width // 2 - 150, self.height // 2 + 310, 300, 60)
             case "AIMenu":
                 self.title = self.font.render("AI Menu", True, (235, 182, 203))
                 self.dfs_button = pygame.Rect(self.width // 2 - 325, self.height // 2 - 50, 300, 60)
@@ -79,6 +100,26 @@ class Menu:
                 self.draw_button(self.ai_button, "AI")
                 self.draw_button(self.settings_button, "Settings")
                 self.draw_button(self.quit_button, "Quit")
+            case "SettingsMenu":
+                self.draw_changable_buttons(self.number_of_rows, self.rows)
+                info_rows_rect = self.info_rows.get_rect(center=(self.width // 2 - 180, self.height // 2 - 70))
+                self.screen.blit(self.info_rows, info_rows_rect)
+                self.draw_changable_buttons(self.number_of_columns, self.columns)
+                info_columns_rect = self.info_columns.get_rect(center=(self.width // 2 + 180, self.height // 2 - 70))
+                self.screen.blit(self.info_columns, info_columns_rect)
+                self.draw_changable_buttons(self.number_of_cakes, self.cakes)
+                info_cakes_rect = self.info_cakes.get_rect(center=(self.width // 2 - 180, self.height // 2 + 50))
+                self.screen.blit(self.info_cakes, info_cakes_rect)
+                self.draw_changable_buttons(self.number_of_slices, self.slices)
+                info_slices_rect = self.info_slices.get_rect(center=(self.width // 2 + 180, self.height // 2 + 50))
+                self.screen.blit(self.info_slices, info_slices_rect)
+                self.draw_changable_buttons(self.number_of_plates_on_table, self.plates)
+                info_plates_rect = self.info_plates.get_rect(center=(self.width // 2 - 180, self.height // 2 + 170))
+                self.screen.blit(self.info_plates, info_plates_rect)
+                self.draw_changable_buttons(self.helper_algorithm, self.helper_list[self.helper_idx])
+                info_helper_rect = self.info_helper.get_rect(center=(self.width // 2 + 180, self.height // 2 + 170))
+                self.screen.blit(self.info_helper, info_helper_rect)
+                self.draw_button(self.back_button, "Back")
             case "AIMenu":
                 self.draw_button(self.dfs_button, "DFS")
                 self.draw_button(self.bfs_button, "BFS")
@@ -140,6 +181,9 @@ class Menu:
                     elif self.quit_button.collidepoint(event.pos):
                         pygame.quit()
                         sys.exit()
+                case "SettingsMenu":
+                    if self.back_button.collidepoint(event.pos):
+                        return "back"
                 case "AIMenu":
                     if self.dfs_button.collidepoint(event.pos):
                         return "DFS"
@@ -218,6 +262,50 @@ class Menu:
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             match self.menu_type:
+                case "SettingsMenu":
+                    third_width_rows = self.number_of_rows.width // 3
+                    left_area_rows = pygame.Rect(self.number_of_rows.left, self.number_of_rows.top, third_width_rows, self.number_of_rows.height)
+                    right_area_rows = pygame.Rect(self.number_of_rows.right - third_width_rows, self.number_of_rows.top, third_width_rows, self.number_of_rows.height)
+                    if left_area_rows.collidepoint(mouse_pos):
+                        self.rows = max(2, self.rows - 1)
+                    elif right_area_rows.collidepoint(mouse_pos):
+                        self.rows = min(8, self.rows + 1)
+                    third_width_columns = self.number_of_columns.width // 3
+                    left_area_columns = pygame.Rect(self.number_of_columns.left, self.number_of_columns.top, third_width_columns, self.number_of_columns.height)
+                    right_area_columns = pygame.Rect(self.number_of_columns.right - third_width_columns, self.number_of_columns.top, third_width_columns, self.number_of_columns.height)
+                    if left_area_columns.collidepoint(mouse_pos):
+                        self.columns = max(2, self.columns - 1)
+                    elif right_area_columns.collidepoint(mouse_pos):
+                        self.columns = min(8, self.columns + 1)
+                    third_width_cakes = self.number_of_cakes.width // 3
+                    left_area_cakes = pygame.Rect(self.number_of_cakes.left, self.number_of_cakes.top, third_width_cakes, self.number_of_cakes.height)
+                    right_area_cakes = pygame.Rect(self.number_of_cakes.right - third_width_cakes, self.number_of_cakes.top, third_width_cakes, self.number_of_cakes.height)
+                    if left_area_cakes.collidepoint(mouse_pos):
+                        self.cakes = max(3, self.cakes - 2)
+                    elif right_area_cakes.collidepoint(mouse_pos):
+                        self.cakes = min(200, self.cakes + 2)
+                    third_width_slices = self.number_of_slices.width // 3
+                    left_area_slices = pygame.Rect(self.number_of_slices.left, self.number_of_slices.top, third_width_slices, self.number_of_slices.height)
+                    right_area_slices = pygame.Rect(self.number_of_slices.right - third_width_slices, self.number_of_slices.top, third_width_slices, self.number_of_slices.height)
+                    if left_area_slices.collidepoint(mouse_pos):
+                        self.slices = max(2, self.slices - 1)
+                    elif right_area_slices.collidepoint(mouse_pos):
+                        self.slices = min(8, self.slices + 1)
+                    third_width_plates = self.number_of_plates_on_table.width // 3
+                    left_area_plates = pygame.Rect(self.number_of_plates_on_table.left, self.number_of_plates_on_table.top, third_width_plates, self.number_of_plates_on_table.height)
+                    right_area_plates = pygame.Rect(self.number_of_plates_on_table.right - third_width_plates, self.number_of_plates_on_table.top, third_width_plates, self.number_of_plates_on_table.height)
+                    if left_area_plates.collidepoint(mouse_pos):
+                        self.plates = max(1, self.plates - 1)
+                    elif right_area_plates.collidepoint(mouse_pos):
+                        self.plates = min(5, self.plates + 1)
+                    third_width_helper = self.helper_algorithm.width // 3
+                    left_area_helper = pygame.Rect(self.helper_algorithm.left, self.helper_algorithm.top, third_width_helper, self.helper_algorithm.height)
+                    right_area_helper = pygame.Rect(self.helper_algorithm.right - third_width_helper, self.helper_algorithm.top, third_width_helper, self.helper_algorithm.height)
+                    if left_area_helper.collidepoint(mouse_pos):
+                        self.helper_idx = (self.helper_idx - 1) % len(self.helper_list)
+                    elif right_area_helper.collidepoint(mouse_pos):
+                        self.helper_idx = (self.helper_idx + 1) % len(self.helper_list)
+                    return self.rows, self.columns, self.cakes, self.slices, self.plates, self.helper_list[self.helper_idx]
                 case "BFSMenu":
                     third_width = self.depth_button.width // 3
                     left_area = pygame.Rect(self.depth_button.left, self.depth_button.top, third_width, self.depth_button.height)
@@ -251,6 +339,6 @@ class Menu:
                         self.iteractions = min(5000, self.iteractions + 100)
                     return self.iteractions, self.depth
         
-        return self.depth
+            return self.depth
     
    
